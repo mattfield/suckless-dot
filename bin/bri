@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+case "$1" in
+    "inc") light -A 5 ;;
+    "dec") light -U 5 ;;
+    *) printf "%s\\n" "Usage: ./bri inc, ./bri dec"; exit ;;
+esac
+
+blDir='/sys/class/backlight/intel_backlight'
+brightness=$(cat $blDir/brightness) # current brightness
+max=$(cat $blDir/max_brightness)    # maximum brightness
+current_bri=$(echo "scale=3; ($brightness/$max)*100" | bc | awk '{print int($1+0.5)}')
+
+notify-send -r 112 "Brightness: ${current_bri/$'\n'*}"
+#notify-send -r 112 "Brightness: ${current_bri/$'\n'*}"

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+case "$1" in
+    left)
+        xrandr --output HDMI2 --primary --auto --output eDP1 --auto --right-of HDMI2;;
+    right)
+        xrandr --output HDMI2 --primary --auto --output eDP1 --auto --left-of HDMI2;;
+    dup)
+        xrandr --output HDMI2 --same-as eDP1 --output eDP1 --primary;;
+    screen)
+        xrandr --output HDMI2 --primary --auto --output eDP1 --off;;
+    laptop)
+        xrandr --output eDP1 --primary --auto --output HDMI2 --off;;
+    list)
+        xrandr | grep '\<connected\>' | cut -d\  -f1;;
+    *) echo `basename $0` '{left|right|dup|screen|laptop|list}';;
+esac

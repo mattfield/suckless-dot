@@ -1,0 +1,145 @@
+#!/bin/dash
+# on exit, kill all children
+trap 'pkill -P $$' EXIT
+LC_ALL=""
+
+init() {
+    # get colors
+    . $HOME/var/cache/tm/colors/colors.sh
+
+    colorwscurrent=$color5
+
+    [ -d /tmp/bar ] && rm -rf /tmp/bar
+    mkdir -p /tmp/bar
+
+    # wait for dwm to start
+    while ! pgrep dwm > /dev/null ; do
+        sleep 0.1
+    done
+
+    # if zero, bar is disabled
+    [ $(cat /tmp/dwm_info/bar_height) -eq 0 ] && exit
+
+    echo 1 > /tmp/dwm_info/check
+
+    # geometry
+    local sw=$(res -w)
+    local sh=$(res -h)
+    h=$(cat /tmp/dwm_info/bar_height)
+    extra_args=""
+
+    if [ $(cat /tmp/dwm_info/barpos)  -le 1 ]; then
+        [ $(cat /tmp/dwm_info/barpos) -eq 0 ] && y=$(cat /tmp/dwm_info/gappx)
+        [ $(cat /tmp/dwm_info/barpos) -eq 1 ] && y=$(( $sh - $h ))
+        w=$(($sw - 200))
+    elif [ $(cat /tmp/dwm_info/barpos) -eq 2 ]; then
+        x=0
+        y=$(( sh - h ))
+        w=$sw
+        extra_args="-S"
+    fi
+
+    x=$(( $sw / 2 - $w / 2 ))
+
+    # fonts
+    #ft="cherry:pixelsize=10"
+    ft='scientifica:pixelsize=11:style=bold'
+
+	# get the current volume
+	$HOME/bin/vol -i 0
+}
+
+wksp() {
+    if [ $(cat /tmp/dwm_info/check) -eq 1 ] ; then
+        local i=1
+        while [ $i -le $(cat /tmp/dwm_info/num_ws) ]; do
+            [ $(cat /tmp/dwm_info/ws"$i") -eq 1 ] && ws=" $i " || ws=""
+
+            [ $(cat /tmp/dwm_info/current_ws) -eq $i ] &&
+                ws=" %{F$colorwscurrent}$i%{F-} "
+
+            buffer=$buffer$ws
+            i=$((i+1))
+        done
+        echo -n "$buffer" > /tmp/bar/wksp
+    fi 2> /dev/null
+}
+
+focused_window() {
+    local winn="$(xdotool getactivewindow getwindowname | tr '[:upper:]' '[:lower:]')"
+    local lenwinn=${#winn}
+    local formatname=""
+
+    [ ${lenwinn} -ge 60 ] && winn="`echo "$winn" | cut -b 1-55`..."
+    [ -n "${winn}" ] && formatname=" $winn "
+    echo $formatname
+}
+
+
+launch_daemons() {
+    timed() {
+        while true; do
+            date "+%H:%M" > /tmp/bar/time
+        sleep 59
+        done
+    }
+
+    # date_daemon
+    dated() {
+        while true; do
+            cur_month="$(date +%b | tr '[:upper:]' '[:lower:]')"
+            cur_date="$(date +%d)"
+            echo "$cur_month $cur_date" > /tmp/bar/date
+            sleep 300
+        done
+    }
+
+    # day_daemon
+    dayd() {
+        while true; do
+            echo $(date +%a | tr '[:upper:]' '[:lower:]' | cut -b1-2) > /tmp/bar/day
+            sleep 300
+        done
+    }
+
+    batd() {
+        while true; do
+            percent=`$HOME/bin/bat -p`
+            status=`$HOME/bin/bat -s`
+            [ ${status} = "Charging" ] && color=$color1 || color=$color7
+            [ ${status} != "Unknown" ] && echo "$percent%" > /tmp/bar/bat || return
+            sleep 5
+        done
+    }
+
+    for d in timed dated dayd batd; do $d & done
+    unset d
+}
+
+init
+launch_daemons
+
+while \
+    printf "%s%b%s%b%b%b%b%b%b%s\\n" \
+        "%{l} >  $(cat /tmp/bar/day) "\
+        "$(wksp) $(cat /tmp/bar/wksp) " \
+        "$(cat /tmp/dwm_info/current_layout) "\
+        " $(cat /tmp/ytpl_title)   "\
+        "%{c}  $(focused_window)"\
+        "%{r}" \
+        "$(cat /tmp/bar/bat 2> /dev/null)" \
+        " $(cat /tmp/bar/vol)% "\
+        " $(cat /tmp/bar/time) "\
+        " $(cat /tmp/bar/date) "
+    do sleep 0.5
+done 2> /dev/null | \
+
+lemonbar -db \
+         -f "$ft" \
+         -g ${w}x${h}+${x}+${y} \
+         -n bar \
+         -B $color0 \
+         -F $color7 \
+         -r $(cat /tmp/dwm_info/borderpx)\
+         -R $color5 \
+         ${extra_args} #> /dev/null 2>&1

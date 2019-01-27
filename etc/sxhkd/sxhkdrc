@@ -1,0 +1,40 @@
+super + ctrl + c
+  caffeine
+
+#
+# audio
+#
+
+XF86AudioRaiseVolume
+  vol up
+
+XF86AudioLowerVolume
+  vol down
+
+XF86AudioMute
+  vol mute
+
+super + shift + End
+  mpc toggle
+
+super + shift + Home
+  mpc prev
+
+super + shift + Delete
+  mpc next
+
+#
+# screen
+#
+
+XF86MonBrightnessUp
+  bri inc
+
+XF86MonBrightnessDown
+  bri dec
+
+Print
+  scr
+
+shift + Print
+  scrot -s

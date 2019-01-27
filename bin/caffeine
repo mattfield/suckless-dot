@@ -1,0 +1,22 @@
+#!/bin/sh
+
+DPMS=$(xset q | grep "DPMS is Disabled")
+
+if [ "$DPMS" == "" ]; then
+    # dpms enabed, turn it off
+    xset s 0 0
+    xset s noblank
+    xset s off
+    xset s -dpms
+    echo "Caffeine mode enabled"
+    # send notification
+    notify-send -u low -a "Caffeine" -i "caffeine" "Caffeine Mode Enabled"
+else
+    # dpms disabled, turn it on
+    xset s 0 300
+    xset s blank
+    xset s on
+    xset s +dpms
+    echo "Caffeine mode disabled"
+    notify-send -u low -a "Caffeine" -i "caffeine" "Caffeine Mode Disabled"
+fi;
