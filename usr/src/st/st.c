@@ -38,14 +38,10 @@
 
 /* macros */
 #define IS_SET(flag)		((term.mode & (flag)) != 0)
-#define NUMMAXLEN(x)		((int)(sizeof(x) * 2.56 + 0.5) + 1)
 #define ISCONTROLC0(c)		(BETWEEN(c, 0, 0x1f) || (c) == '\177')
 #define ISCONTROLC1(c)		(BETWEEN(c, 0x80, 0x9f))
 #define ISCONTROL(c)		(ISCONTROLC0(c) || ISCONTROLC1(c))
 #define ISDELIM(u)		(utf8strchr(worddelimiters, u) != NULL)
-
-/* constants */
-#define ISO14755CMD		"dmenu -w \"$WINDOWID\" -p codepoint: </dev/null"
 
 enum term_mode {
 	MODE_WRAP        = 1 << 0,
@@ -204,7 +200,6 @@ static void tdefutf8(char);
 static int32_t tdefcolor(int *, int *, int);
 static void tdeftran(char);
 static void tstrsequence(uchar);
-static void tsetcolor(int, int, int, uint32_t, uint32_t);
 
 static void drawregion(int, int, int, int);
 
@@ -257,10 +252,10 @@ xwrite(int fd, const char *s, size_t len)
 void *
 xmalloc(size_t len)
 {
-	void *p = malloc(len);
+	void *p;
 
-	if (!p)
-		die("Out of memory\n");
+	if (!(p = malloc(len)))
+		die("malloc: %s\n", strerror(errno));
 
 	return p;
 }
@@ -269,7 +264,7 @@ void *
 xrealloc(void *p, size_t len)
 {
 	if ((p = realloc(p, len)) == NULL)
-		die("Out of memory\n");
+		die("realloc: %s\n", strerror(errno));
 
 	return p;
 }
@@ -278,7 +273,7 @@ char *
 xstrdup(char *s)
 {
 	if ((s = strdup(s)) == NULL)
-		die("Out of memory\n");
+		die("strdup: %s\n", strerror(errno));
 
 	return s;
 }
@@ -447,6 +442,7 @@ selstart(int col, int row, int snap)
 	selclear();
 	sel.mode = SEL_EMPTY;
 	sel.type = SEL_REGULAR;
+	sel.alt = IS_SET(MODE_ALTSCREEN);
 	sel.snap = snap;
 	sel.oe.x = sel.ob.x = col;
 	sel.oe.y = sel.ob.y = row;
@@ -475,7 +471,6 @@ selextend(int col, int row, int type, int done)
 	oldsey = sel.ne.y;
 	oldtype = sel.type;
 
-	sel.alt = IS_SET(MODE_ALTSCREEN);
 	sel.oe.x = col;
 	sel.oe.y = row;
 	selnormalize();
@@ -688,7 +683,7 @@ execsh(char *cmd, char **args)
 	errno = 0;
 	if ((pw = getpwuid(getuid())) == NULL) {
 		if (errno)
-			die("getpwuid:%s\n", strerror(errno));
+			die("getpwuid: %s\n", strerror(errno));
 		else
 			die("who are you?\n");
 	}
@@ -731,13 +726,15 @@ sigchld(int a)
 	pid_t p;
 
 	if ((p = waitpid(pid, &stat, WNOHANG)) < 0)
-		die("Waiting for pid %hd failed: %s\n", pid, strerror(errno));
+		die("waiting for pid %hd failed: %s\n", pid, strerror(errno));
 
 	if (pid != p)
 		return;
 
-	if (!WIFEXITED(stat) || WEXITSTATUS(stat))
-		die("child finished with error '%d'\n", stat);
+	if (WIFEXITED(stat) && WEXITSTATUS(stat))
+		die("child exited with status %d\n", WEXITSTATUS(stat));
+	else if (WIFSIGNALED(stat))
+		die("child terminated due to signal %d\n", WTERMSIG(stat));
 	exit(0);
 }
 
@@ -782,7 +779,8 @@ ttynew(char *line, char *cmd, char *out, char **args)
 
 	if (line) {
 		if ((cmdfd = open(line, O_RDWR)) < 0)
-			die("open line failed: %s\n", strerror(errno));
+			die("open line '%s' failed: %s\n",
+			    line, strerror(errno));
 		dup2(cmdfd, 0);
 		stty(args);
 		return cmdfd;
@@ -794,7 +792,7 @@ ttynew(char *line, char *cmd, char *out, char **args)
 
 	switch (pid = fork()) {
 	case -1:
-		die("fork failed\n");
+		die("fork failed: %s\n", strerror(errno));
 		break;
 	case 0:
 		close(iofd);
@@ -806,9 +804,17 @@ ttynew(char *line, char *cmd, char *out, char **args)
 			die("ioctl TIOCSCTTY failed: %s\n", strerror(errno));
 		close(s);
 		close(m);
+#ifdef __OpenBSD__
+		if (pledge("stdio getpw proc exec", NULL) == -1)
+			die("pledge\n");
+#endif
 		execsh(cmd, args);
 		break;
 	default:
+#ifdef __OpenBSD__
+		if (pledge("stdio rpath tty proc", NULL) == -1)
+			die("pledge\n");
+#endif
 		close(s);
 		cmdfd = m;
 		signal(SIGCHLD, sigchld);
@@ -827,7 +833,7 @@ ttyread(void)
 
 	/* append read bytes to unprocessed bytes */
 	if ((ret = read(cmdfd, buf+buflen, LEN(buf)-buflen)) < 0)
-		die("Couldn't read from shell: %s\n", strerror(errno));
+		die("couldn't read from shell: %s\n", strerror(errno));
 	buflen += ret;
 
 	written = twrite(buf, buflen, 0);
@@ -1224,9 +1230,6 @@ tsetchar(Rune u, Glyph *attr, int x, int y)
 	term.dirty[y] = 1;
 	term.line[y][x] = *attr;
 	term.line[y][x].u = u;
-
-	if (boxdraw && isboxdraw(&term.line[y][x]))
-		term.line[y][x].mode |= ATTR_BOXDRAW;
 }
 
 void
@@ -1451,7 +1454,8 @@ tsetattr(int *attr, int l)
 			} else {
 				fprintf(stderr,
 					"erresc(default): gfx attr %d unknown\n",
-					attr[i]), csidump();
+					attr[i]);
+				csidump();
 			}
 			break;
 		}
@@ -1600,17 +1604,6 @@ tsetmode(int priv, int set, int *args, int narg)
 				break;
 			}
 		}
-	}
-}
-
-void
-tsetcolor( int row, int start, int end, uint32_t fg, uint32_t bg )
-{
-	int i = start;
-	for( ; i < end; ++i )
-	{
-		term.line[row][i].fg = fg;
-		term.line[row][i].bg = bg;
 	}
 }
 
@@ -1986,27 +1979,58 @@ tprinter(char *s, size_t len)
 		iofd = -1;
 	}
 }
-
+ 
 void
-iso14755(const Arg *arg)
+externalpipe(const Arg *arg)
 {
-	FILE *p;
-	char *us, *e, codepoint[9], uc[UTF_SIZ];
-	unsigned long utf32;
+	int to[2];
+	char buf[UTF_SIZ];
+	void (*oldsigpipe)(int);
+	Glyph *bp, *end;
+	int lastpos, n, newline;
 
-	if (!(p = popen(ISO14755CMD, "r")))
+	if (pipe(to) == -1)
 		return;
 
-	us = fgets(codepoint, sizeof(codepoint), p);
-	pclose(p);
-
-	if (!us || *us == '\0' || *us == '-' || strlen(us) > 7)
+	switch (fork()) {
+	case -1:
+		close(to[0]);
+		close(to[1]);
 		return;
-	if ((utf32 = strtoul(us, &e, 16)) == ULONG_MAX ||
-	    (*e != '\n' && *e != '\0'))
-		return;
+	case 0:
+		dup2(to[0], STDIN_FILENO);
+		close(to[0]);
+		close(to[1]);
+		execvp(((char **)arg->v)[0], (char **)arg->v);
+		fprintf(stderr, "st: execvp %s\n", ((char **)arg->v)[0]);
+		perror("failed");
+		exit(0);
+	}
 
-	ttywrite(uc, utf8encode(utf32, uc), 1);
+	close(to[0]);
+	/* ignore sigpipe for now, in case child exists early */
+	oldsigpipe = signal(SIGPIPE, SIG_IGN);
+	newline = 0;
+	for (n = 0; n < term.row; n++) {
+		bp = term.line[n];
+		lastpos = MIN(tlinelen(n) + 1, term.col) - 1;
+		if (lastpos < 0)
+			break;
+		end = &bp[lastpos + 1];
+		for (; bp < end; ++bp)
+			if (xwrite(to[1], buf, utf8encode(bp->u, buf)) < 0)
+				break;
+		if ((newline = term.line[n][lastpos].mode & ATTR_WRAP))
+			continue;
+		if (xwrite(to[1], "\n", 1) < 0)
+			break;
+		newline = 0;
+	}
+	if (newline)
+		(void)xwrite(to[1], "\n", 1);
+	close(to[1]);
+	/* restore */
+	signal(SIGPIPE, oldsigpipe);
 }
 
 void
@@ -2293,7 +2317,7 @@ eschandle(uchar ascii)
 	case 'Z': /* DECID -- Identify Terminal */
 		ttywrite(vtiden, strlen(vtiden), 0);
 		break;
-	case 'c': /* RIS -- Reset to inital state */
+	case 'c': /* RIS -- Reset to initial state */
 		treset();
 		resettitle();
 		xloadcols();
@@ -2630,115 +2654,4 @@ redraw(void)
 {
 	tfulldirt();
 	draw();
-}
-
-char *
-findlastany(char *str, const char** find, size_t len)
-{
-	char* found = NULL;
-	int i = 0;
-	for(found = str + strlen(str) - 1; found >= str; --found) {
-		for(i = 0; i < len; i++) {
-			if(strncmp(found, find[i], strlen(find[i])) == 0) {
-				return found;
-			}
-		}
-	}
-
-	return NULL;
-}
-
-/*
-** Select and copy the previous url on screen (do nothing if there's no url).
-**
-** FIXME: doesn't handle urls that span multiple lines; will need to add support
-**        for multiline "getsel()" first
-*/
-void
-copyurl(const Arg *arg) {
-	/* () and [] can appear in urls, but excluding them here will reduce false
-	 * positives when figuring out where a given url ends.
-	 */
-	static char URLCHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		"abcdefghijklmnopqrstuvwxyz"
-		"0123456789-._~:/?#@!$&'*+,;=%";
-
-	static const char* URLSTRINGS[] = {"http://", "https://"};
-
-	/* remove highlighting from previous selection if any */
-	if(sel.ob.x >= 0 && sel.oe.x >= 0)
-		tsetcolor(sel.nb.y, sel.ob.x, sel.oe.x + 1, defaultfg, defaultbg);
-
-	int i = 0,
-		row = 0, /* row of current URL */
-		col = 0, /* column of current URL start */
-		startrow = 0, /* row of last occurrence */
-		colend = 0, /* column of last occurrence */
-		passes = 0; /* how many rows have been scanned */
-
-	char *linestr = calloc(sizeof(char), term.col+1); /* assume ascii */
-	char *c = NULL,
-		 *match = NULL;
-
-	row = (sel.ob.x >= 0 && sel.nb.y > 0) ? sel.nb.y : term.bot;
-	LIMIT(row, term.top, term.bot);
-	startrow = row;
-
-	colend = (sel.ob.x >= 0 && sel.nb.y > 0) ? sel.nb.x : term.col;
-	LIMIT(colend, 0, term.col);
-
-	/*
- 	** Scan from (term.bot,term.col) to (0,0) and find
-	** next occurrance of a URL
-	*/
-	while(passes !=term.bot + 2) {
-		/* Read in each column of every row until
- 		** we hit previous occurrence of URL
-		*/
-		for (col = 0, i = 0; col < colend; ++col,++i) {
-			/* assume ascii */
-			if (term.line[row][col].u > 127)
-				continue;
-			linestr[i] = term.line[row][col].u;
-		}
-		linestr[term.col] = '\0';
-
-		if ((match = findlastany(linestr, URLSTRINGS,
-						sizeof(URLSTRINGS)/sizeof(URLSTRINGS[0]))))
-			break;
-
-		if (--row < term.top)
-			row = term.bot;
-
-		colend = term.col;
-		passes++;
-	};
-
-	if (match) {
-		/* must happen before trim */
-		selclear();
-		sel.ob.x = strlen(linestr) - strlen(match);
-
-		/* trim the rest of the line from the url match */
-		for (c = match; *c != '\0'; ++c)
-			if (!strchr(URLCHARS, *c)) {
-				*c = '\0';
-				break;
-			}
-
-		/* highlight selection by inverting terminal colors */
-		tsetcolor(row, sel.ob.x, sel.ob.x + strlen( match ), defaultbg, defaultfg);
-
-		/* select and copy */
-		sel.mode = 1;
-		sel.type = SEL_REGULAR;
-		sel.oe.x = sel.ob.x + strlen(match)-1;
-		sel.ob.y = sel.oe.y = row;
-		selnormalize();
-		tsetdirt(sel.nb.y, sel.ne.y);
-		xsetsel(getsel());
-		xclipcopy();
-	}
-
-	free(linestr);
 }

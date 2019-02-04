@@ -5,12 +5,13 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-//static char *font = "cherry:pixelsize=13:antialias=true:autohint=true";
-static char *font = "dina:pixelsize=13:antialias=true:autohint=true";
-
-#include "/home/matt/var/cache/tm/colors/colors_st.h"
-
+static char *font = "Gohu GohuFont:size=12:antialias=true";
 static int borderpx = 2;
+
+/* disable bold, italic, and roman fonts globally */
+int disablebold = 1;
+int disableitalic = 1;
+int disableroman = 1;
 
 /*
  * What program is execed by st depends of these precedence rules:
@@ -61,14 +62,6 @@ static unsigned int blinktimeout = 800;
 static unsigned int cursorthickness = 2;
 
 /*
- * 1: custom-draw (without using the font) most of the lines/blocks characters
- *    for gapless alignment between cells. This includes all the codepoints at
- *    U+2500 - U+259F except dashes, diagonals and shades.
- * 0: disable (render all glyphs normally from the font).
- */
-const int boxdraw = 1;
-
-/*
  * bell volume. It must be a value between -100 and 100. Use 0 for disabling
  * it
  */
@@ -94,44 +87,40 @@ char *termname = "st-256color";
  */
 unsigned int tabspaces = 8;
 
-/* Terminal colors (16 first used in escape sequence) */
-//static const char *colorname[] = {
-	//[> 8 normal colors <]
-	//"black",
-	//"red3",
-	//"green3",
-	//"yellow3",
-	//"blue2",
-	//"magenta3",
-	//"cyan3",
-	//"gray90",
+const char *colorname[] = {
 
-	//[> 8 bright colors <]
-	//"gray50",
-	//"red",
-	//"green",
-	//"yellow",
-	//"#5c5cff",
-	//"magenta",
-	//"cyan",
-	//"white",
+  /* 8 normal colors */
+  [0] = "#101010", /* black   */
+  [1] = "#7c7c7c", /* red     */
+  [2] = "#8e8e8e", /* green   */
+  [3] = "#a0a0a0", /* yellow  */
+  [4] = "#686868", /* blue    */
+  [5] = "#747474", /* magenta */
+  [6] = "#868686", /* cyan    */
+  [7] = "#b9b9b9", /* white   */
 
-	//[255] = 0,
+  /* 8 bright colors */
+  [8]  = "#525252",  /* black   */
+  [9]  = "#7c7c7c",  /* red     */
+  [10] = "#8e8e8e", /* green   */
+  [11] = "#a0a0a0", /* yellow  */
+  [12] = "#686868", /* blue    */
+  [13] = "#747474", /* magenta */
+  [14] = "#868686", /* cyan    */
+  [15] = "#f7f7f7", /* white   */
 
-	//[> more colors can be added after 255 to use with DefaultXX <]
-	//"#cccccc",
-	//"#555555",
-//};
+  /* special colors */
+  [256] = "#101010", /* background */
+  [257] = "#b9b9b9", /* foreground */
+  [258] = "#b9b9b9",     /* cursor */
+};
 
-
-/*
- * Default colors (colorname index)
- * foreground, background, cursor, reverse cursor
- */
-//unsigned int defaultfg = 7;
-//unsigned int defaultbg = 0;
-//static unsigned int defaultcs = 256;
-static unsigned int defaultrcs = 257;
+/* Default colors (colorname index)
+ * foreground, background, cursor */
+ unsigned int defaultbg = 0;
+ unsigned int defaultfg = 257;
+ unsigned int defaultcs = 258;
+ unsigned int defaultrcs= 258;
 
 /*
  * Default shape of cursor
@@ -176,6 +165,10 @@ static MouseShortcut mshortcuts[] = {
 #define MODKEY Mod1Mask
 #define TERMMOD (ControlMask|ShiftMask)
 
+static char *openurlcmd[] = { "/bin/sh", "-c",
+    "xurls | uniq | dmenu -l 10 | xargs -r xdg-open",
+    "externalpipe", NULL };
+
 static Shortcut shortcuts[] = {
 	/* mask                 keysym          function        argument */
 	{ XK_ANY_MOD,           XK_Break,       sendbreak,      {.i =  0} },
@@ -188,9 +181,8 @@ static Shortcut shortcuts[] = {
 	{ TERMMOD,              XK_C,           clipcopy,       {.i =  0} },
 	{ TERMMOD,              XK_V,           clippaste,      {.i =  0} },
 	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
+	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
 	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
-	{ TERMMOD,              XK_I,           iso14755,       {.i =  0} },
-	{ MODKEY,               XK_l,           copyurl,        {.i =  0} },
 };
 
 /*

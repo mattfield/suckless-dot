@@ -1,0 +1,52 @@
+--- b/config.def.h	2019-02-04 21:22:53.396556203 +0000
++++ config.def.h	2019-02-04 21:23:33.006554437 +0000
+@@ -8,6 +8,11 @@
+ static char *font = "Liberation Mono:pixelsize=12:antialias=true:autohint=true";
+ static int borderpx = 2;
+ 
++/* disable bold, italic and roman fonts globally */
++int disablebold = 0;
++int disableitalic = 0;
++int disableroman = 0;
++
+ /*
+  * What program is execed by st depends of these precedence rules:
+  * 1: program passed with -e
+--- b/x.c	2019-02-04 21:22:56.293222742 +0000
++++ x.c	2019-02-04 21:24:46.663217804 +0000
+@@ -240,6 +240,11 @@
+ 
+ static int oldbutton = 3; /* button event on startup: 3 = release */
+ 
++/* declared in config.h */
++extern int disablebold;
++extern int disableitalic;
++extern int disableroman;
++
+ void
+ clipcopy(const Arg *dummy)
+ {
+@@ -957,17 +962,20 @@
+ 	win.ch = ceilf(dc.font.height * chscale);
+ 
+ 	FcPatternDel(pattern, FC_SLANT);
+-  FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ITALIC);
++  if (!disableitalic)
++    FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ITALIC);
+ 	if (xloadfont(&dc.ifont, pattern))
+ 		die("can't open font %s\n", fontstr);
+ 
+ 	FcPatternDel(pattern, FC_WEIGHT);
+-  FcPatternAddInteger(pattern, FC_WEIGHT, FC_WEIGHT_BOLD);
++  if (!disablebold)
++    FcPatternAddInteger(pattern, FC_WEIGHT, FC_WEIGHT_BOLD);
+ 	if (xloadfont(&dc.ibfont, pattern))
+ 		die("can't open font %s\n", fontstr);
+ 
+ 	FcPatternDel(pattern, FC_SLANT);
+-  FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ROMAN);
++  if (!disableroman)
++    FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ROMAN);
+ 	if (xloadfont(&dc.bfont, pattern))
+ 		die("can't open font %s\n", fontstr);
+ 
