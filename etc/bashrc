@@ -1,145 +1,65 @@
-# $HOME/etc/bashrc
+# ~/.bashrc
 # If not running interactively, don't do anything
-[[ $- != *i* ]] && return
+case $- in
+    *i*) ;;
+      *) return;;
+esac
 
-# colors and their ANSI codes. made colorful prompt easy
-_blk="\[\033[38;5;0m\]"
-_red="\[\033[38;5;1m\]"
-_grn="\[\033[38;5;2m\]"
-_ylw="\[\033[38;5;3m\]"
-_blu="\[\033[38;5;4m\]"
-_pnk="\[\033[38;5;5m\]"
-_cyn="\[\033[38;5;6m\]"
-_wht="\[\033[38;5;7m\]"
-_dblk="\[\033[38;5;8m\]"
-_dred="\[\033[38;5;9m\]"
-_dgrn="\[\033[38;5;10m\]"
-_dylw="\[\033[38;5;11m\]"
-_dblu="\[\033[38;5;12m\]"
-_dpnk="\[\033[38;5;13m\]"
-_dcyn="\[\033[38;5;14m\]"
-_dwht="\[\033[38;5;15m\]"
+. ${HOME}/etc/aliases
+. ${HOME}/z/z.sh
+. /usr/share/bash-completion/bash_completion
 
-# check the current git branch
-# read the comments to understand
-_branch() {
-    local branch="$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/')"
-    local branch_status=0
+HISTCONTROL=ignoredups
+HISTSIZE=100000
+HISTFILESIZE=2000
 
-    # branch_status=0 => unmodified
-    # branch_status=1 => modified
-    # branch_status=2 => the local repo is ahead
-    # TODO: add support for checking if the local repo is not up to date
+export EDITOR="nvim"
+export VISUAL="$EDITOR"
+export PATH=$PATH:$HOME/bin:$HOME/.local/bin:$HOME/usr/local
+export PATH=$PATH:$HOME/usr/local/bin
 
-    if [ -n "$branch" ]; then
-        case "$(git status -uno 2> /dev/null)" in
-            *"Changes to be committed"* | *"not staged"*)
-            branch_status=1;;
-            *"ahead of"*)
-            branch_status=2;;
-            *"up to date"*)
-            branch_status=0;;
-        esac
+export XDG_CACHE_HOME="$HOME/var/cache"
+export XDG_CONFIG_HOME="$HOME/etc"
+export XDG_DESKTOP_DIR="/non/existent"
+export XDG_DOWNLOAD_DIR="$HOME/var/downloads"
+export XDG_MUSIC_DIR="$HOME/var/music"
 
-        case $branch_status in
-        0) echo -n "$branch";;
-        1) echo -n "${branch}+";;
-        2) echo -n "${branch}^";;
-        esac
-    fi
+export MAIL="$HOME/var/mail/inbox"
+export XAUTHORITY="$XDG_CACHE_HOME/Xauthority"
+
+bind 'TAB: menu-complete'
+bind 'set show-all-if-ambiguous on'
+bind 'set completion-ignore-case on'
+bind 'set completion-map-case on'
+bind 'set page-completions off'
+bind 'set menu-complete-display-prefix on'
+bind 'set completion-query-items 0'
+
+eval `keychain --eval --nogui --quiet --agents ssh,gpg --gpg2 --ignore-missing --noask id_rsa elastic id_rsa.elastic found-staging.pem`
+
+shopt -s histappend
+shopt -s checkwinsize
+
+# Colored XTERM promp
+case "$TERM" in
+    xterm-color) color_prompt=yes;;
+esac
+
+# Color man pages
+man() {
+	env \
+		LESS_TERMCAP_mb=$(printf "\e[1;31m") \
+		LESS_TERMCAP_md=$(printf "\e[1;31m") \
+		LESS_TERMCAP_me=$(printf "\e[0m") \
+		LESS_TERMCAP_se=$(printf "\e[0m") \
+		LESS_TERMCAP_so=$(printf "\e[1;44;33m") \
+		LESS_TERMCAP_ue=$(printf "\e[0m") \
+		LESS_TERMCAP_us=$(printf "\e[1;32m") \
+    man "$@"
 }
-
-# set our terminal's window terminal to the current working dir
-_set_wn() {
-    # we don't want to set the terminal window's name if we're in a tty
-    if [ "$TERM" != "linux" ]; then
-        local cwd="${PWD/$HOME/\~}"
-        echo -ne "\033]0;bash: $cwd\a" 2> /dev/null
-    fi
-}
-
-# delete Desktop folder
-_rm_desktop() {
-    [ -d $XDG_DESKTOP_HOME ] && rm -rf $XDG_DESKTOP_HOME
-    [ -d $HOME/Desktop ] && rm -rf $HOME/Desktop
-    if [ -d $HOME/Downloads ]; then
-        [ -z "$(ls $HOME/Downloads)" ] && rm -rf $HOME/Downloads
-    fi
-}
-
-# get current branch in git repo
-function parse_git_branch() {
-	BRANCH=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-	if [ ! "${BRANCH}" == "" ]
-	then
-		STAT=`parse_git_dirty`
-		echo "[${BRANCH}${STAT}]"
-	else
-		echo ""
-	fi
-}
-
-# get current status of git repo
-function parse_git_dirty {
-	status=`git status 2>&1 | tee`
-	dirty=`echo -n "${status}" 2> /dev/null | grep "modified:" &> /dev/null; echo "$?"`
-	untracked=`echo -n "${status}" 2> /dev/null | grep "Untracked files" &> /dev/null; echo "$?"`
-	ahead=`echo -n "${status}" 2> /dev/null | grep "Your branch is ahead of" &> /dev/null; echo "$?"`
-	newfile=`echo -n "${status}" 2> /dev/null | grep "new file:" &> /dev/null; echo "$?"`
-	renamed=`echo -n "${status}" 2> /dev/null | grep "renamed:" &> /dev/null; echo "$?"`
-	deleted=`echo -n "${status}" 2> /dev/null | grep "deleted:" &> /dev/null; echo "$?"`
-	bits=''
-	if [ "${renamed}" == "0" ]; then
-		bits=">${bits}"
-	fi
-	if [ "${ahead}" == "0" ]; then
-		bits="*${bits}"
-	fi
-	if [ "${newfile}" == "0" ]; then
-		bits="+${bits}"
-	fi
-	if [ "${untracked}" == "0" ]; then
-		bits="?${bits}"
-	fi
-	if [ "${deleted}" == "0" ]; then
-		bits="x${bits}"
-	fi
-	if [ "${dirty}" == "0" ]; then
-		bits="!${bits}"
-	fi
-	if [ ! "${bits}" == "" ]; then
-		echo " ${bits}"
-	else
-		echo ""
-	fi
-}
-
-#export PS1="\\$ \[\e[37;40m\]\w\[\e[m\] \`parse_git_branch\` "
-export PS1="]\[$(tput sgr0)\]\[\$(_set_wn)\] \W${_cyn} \$(parse_git_branch) \[\$(_rm_desktop)\]\[\033[0m\]"
-
-[ $(whoami) = root ] && export PS1=\#\ 
-
-source $HOME/etc/aliases
-
-set -o emacs
-
-# infinite history
-HISTFILESIZE= HISTSIZE=
-HISTFILE="$HOME/var/cache/bash_history"
-
-# console stuff
-if [ "$TERM" = "linux" ]; then
-    # set our console font. (I'm too lazy to setup a systemd service for this)
-    [ -f $HOME/var/fonts/terminus-font-4.46/ter-v12n.psf ] &&\
-        setfont $HOME/var/fonts/terminus-font-4.46/ter-v12n.psf
-    # set the colorscheme!
-    [ -f $HOME/var/cache/tm/colors/colors_tty.sh ] &&\
-        source $HOME/var/cache/tm/colors/colors_tty.sh 2> /dev/null
-    clear # we have to clear the console to see the changes
-    #[ $(sudo $HOME/bin/brness -g) -gt 10 ] && brness -s 10%
-fi
-
-
-[[ -s /home/matt/.autojump/etc/profile.d/autojump.sh ]] && source /home/matt/.autojump/etc/profile.d/autojump.sh
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+. ${HOME}/.sh.d/style
+
+#export PS1="\[$(tput setaf 1)\]┌─╼ \[$(tput setaf 7)\][\w]\n\[$(tput setaf 1)\]\$(if [[ \$? == 0 ]]; then echo \"\[$(tput setaf 1)\]└────╼\"; else echo \"\[$(tput setaf 1)\]└╼\"; fi) \[$(tput setaf 7)\]"

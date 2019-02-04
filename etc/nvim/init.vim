@@ -10,14 +10,8 @@ Plug 'iamcco/markdown-preview.vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'tpope/vim-vinegar'
-Plug 'tpope/vim-speeddating'
-
-Plug 'junegunn/goyo.vim'
-Plug 'junegunn/limelight.vim'
-Plug 'wikitopian/hardmode'
 
 Plug 'w0rp/ale', { 'for': 'scala' }
-
 Plug 'derekwyatt/vim-scala', { 'for': 'scala' }
 call plug#end()
 
@@ -57,8 +51,7 @@ noremap <Left> <NOP>
 noremap <Right> <NOP>
 
 set t_Co=256
-set termguicolors
-"colorscheme wal
+colorscheme sourcerer
 syntax on
 
 " Quit yo jibber-jabber, foo'

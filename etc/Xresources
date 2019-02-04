@@ -1,7 +1,81 @@
-Xft.dpi: 96
+Xft.autohint: 0
 Xft.antialias: 1
-Xft.autohint: 1
-Xft.hinting: 1
+Xft.hinting: true
 Xft.hintstyle: hintfull
-Xft.lcdfilter: lcddefault
+Xft.dpi: 96
 Xft.rgba: rgb
+Xft.lcdfilter: lcddefault
+
+!URxvt*font: -windows-dina-medium-r-normal--10-80-96-96-*-70-*-*
+!URxvt*boldFont: -windows-dina-medium-r-normal--10-80-96-96-*-70-*-*
+
+!URxvt*font: -benis-lemon-medium-r-normal--10-110-75-75-*-50-*-*
+!URxvt*boldFont: -benis-lemon-medium-r-normal--10-110-75-75-*-50-*-*
+
+!URxvt*font: xft:scientifica:11
+!URxvt*boldFont: xft:scientifica:11
+
+URxvt*font: xft:Gohu GohuFont:size=11:antialias=true
+
+URxvt*boldFont: 
+URxvt*italicFont: 
+URxvt*bolditalicFont: 
+
+URxvt*letterSpace: 0
+URxvt.cursorBlink: 1
+
+URxvt.scrollBar: false
+URxvt*transparent: false
+URxvt*internalBorder: 10
+URxvt*borderLess:false
+
+URxvt*.depth: 24
+
+URxvt.iso14755: false
+URxvt.iso14755_52: false
+URxvt.perl-ext-common: default,clipboard
+URxvt.keysym.Shift-Control-C: perl:clipboard:copy
+URxvt.keysym.Shift-Control-V: perl:clipboard:paste
+
+! base-16 grayscale
+*foreground:        #b9b9b9
+*background:        #101010
+*.foreground:       #b9b9b9
+*.background:       #101010
+
+*.color0: #101010
+*color0:  #101010
+*.color1: #7c7c7c
+*color1:  #7c7c7c
+*.color2: #8e8e8e
+*color2:  #8e8e8e
+*.color3: #a0a0a0
+*color3:  #a0a0a0
+*.color4: #686868
+*color4:  #686868
+*.color5: #747474
+*color5:  #747474
+*.color6: #868686
+*color6:  #868686
+*.color7: #b9b9b9
+*color7:  #b9b9b9
+*.color8: #525252
+*color8:  #525252
+*.color9: #7c7c7c
+*color9:  #7c7c7c
+*.color10: #8e8e8e
+*color10:  #8e8e8e
+*.color11: #a0a0a0
+*color11:  #a0a0a0
+*.color12: #686868
+*color12:  #686868
+*.color13: #747474
+*color13:  #747474
+*.color14: #868686
+*color14:  #868686
+*.color15: #f7f7f7
+*color15:  #f7f7f7
+
+! Black color that will not be affected by bold highlighting.
+*.color66: #101010
+*color66:  #101010
