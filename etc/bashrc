@@ -35,8 +35,6 @@ bind 'set page-completions off'
 bind 'set menu-complete-display-prefix on'
 bind 'set completion-query-items 0'
 
-eval `keychain --eval --nogui --quiet --agents ssh,gpg --gpg2 --ignore-missing --noask id_rsa elastic id_rsa.elastic found-staging.pem`
-
 shopt -s histappend
 shopt -s checkwinsize
 
@@ -61,5 +59,8 @@ man() {
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 . ${HOME}/.sh.d/style
+
+eval `keychain --eval --nogui --quiet --agents ssh --ignore-missing --noask id_rsa elastic id_rsa.elastic found-staging.pem`
+. ${HOME}/.keychain/$(hostname)-sh
 
 #export PS1="\[$(tput setaf 1)\]┌─╼ \[$(tput setaf 7)\][\w]\n\[$(tput setaf 1)\]\$(if [[ \$? == 0 ]]; then echo \"\[$(tput setaf 1)\]└────╼\"; else echo \"\[$(tput setaf 1)\]└╼\"; fi) \[$(tput setaf 7)\]"

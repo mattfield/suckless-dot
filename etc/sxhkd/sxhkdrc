@@ -90,7 +90,7 @@ alt + Return
   st
 
 alt + d
-  dmenu
+  dmenu_run
 
 alt + shift + p
   passmenu
