@@ -4,12 +4,11 @@ xset b 0
 xset r rate 200 80
 
 xsetroot -cursor_name left_ptr &
-
 hashwall -s 9 -r 10 -b $(xrq 'background') &
 
 redshift -l 51:0 -t 5500:3000 -m randr &
-
 dunst &
+clipmenud &
 
 deco-set &
 

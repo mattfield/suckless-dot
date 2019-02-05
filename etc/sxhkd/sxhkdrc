@@ -95,8 +95,11 @@ alt + d
 alt + shift + p
   passmenu
 
+alt + shift + m
+  clipmenu
+
 alt + shift + n
-  urxvt -geometry 120x40 -name popup -e ncmpcpp
+  st -g 120x40 -n popup -e ncmpcpp
 
 super + ctrl + c
   caffeine
