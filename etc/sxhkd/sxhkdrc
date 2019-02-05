@@ -90,13 +90,10 @@ alt + Return
   st
 
 alt + d
-  rofi -show run -padding 20 -hide-scrollbar -font "Dina 10"
-
-alt + shift + s
-  rofi -show ssh -padding 20 -hide-scrollbar -font "Dina 10"
+  dmenu
 
 alt + shift + p
-  rofipass
+  passmenu
 
 alt + shift + n
   urxvt -geometry 120x40 -name popup -e ncmpcpp

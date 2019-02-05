@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+reload_dunst() {
+    pkill dunst && \
+        dunst \
+            -lb "$(xrq '*background')" \
+            -nb "$(xrq '*background')" \
+            -cb "$(xrq '*background')" \
+            -lf "$(xrq '*color15')" \
+            -bf "$(xrq '*color15')" \
+            -cf "$(xrq '*color15')" \
+            -nf "$(xrq '*foreground')" \
+            -fn "${DUNST_FONT:-Gohu GohuFont 8}" \
+            -geometry "${DUNST_SIZES:-230x35-22-22}" &
+}
+
+set_bar() {
+    pkill bar
+    bar 2>/dev/null &
+    sleep .2
+    set-bar
+}
+
+main() {
+    reload_dunst &
+    set_bar &
+}
+
+main >/dev/null 2>&1

@@ -1,4 +1,4 @@
-#!/bin/dash
+#!/bin/bash
 # script to recompile suckless software
 
 base_dir="$HOME/usr/src"
@@ -7,7 +7,7 @@ sltools="dwm dmenu slock st tabbed"
 compile() {
     cd ${base_dir}/${1}
     echo "compiling ${1}"
-    make clean install && make clean
+    sudo make clean install && make clean
 }
 
 compl_all() {

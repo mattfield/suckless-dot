@@ -2,15 +2,15 @@
 
 case "$1" in
     left)
-        xrandr --output HDMI2 --primary --auto --output eDP1 --auto --right-of HDMI2;;
+        xrandr --output HDMI-2 --primary --auto --output eDP-1 --auto --right-of HDMI-2;;
     right)
-        xrandr --output HDMI2 --primary --auto --output eDP1 --auto --left-of HDMI2;;
+        xrandr --output HDMI-2 --primary --auto --output eDP-1 --auto --left-of HDMI-2;;
     dup)
-        xrandr --output HDMI2 --same-as eDP1 --output eDP1 --primary;;
+        xrandr --output HDMI-2 --same-as eDP-1 --output eDP-1 --primary;;
     screen)
-        xrandr --output HDMI2 --primary --auto --output eDP1 --off;;
+        xrandr --output HDMI-2 --primary --auto --output eDP-1 --off;;
     laptop)
-        xrandr --output eDP1 --primary --auto --output HDMI2 --off;;
+        xrandr --output eDP-1 --primary --auto --output HDMI-2 --off;;
     list)
         xrandr | grep '\<connected\>' | cut -d\  -f1;;
     *) echo `basename $0` '{left|right|dup|screen|laptop|list}';;

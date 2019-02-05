@@ -6,6 +6,7 @@
 #include <string.h>
 #include <strings.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -31,7 +32,6 @@ struct item {
 	char *text;
 	struct item *left, *right;
 	int out;
-	int distance;
 };
 
 static char text[BUFSIZ] = "";
@@ -145,7 +145,7 @@ drawmenu(void)
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	drw_text(drw, x, 0, w, bh, lrpad / 2, text, 0);
 
-	drw_font_getexts(drw->fonts, text, cursor, &curpos, NULL);
+	curpos = TEXTW(text) - TEXTW(&text[cursor]);
 	if ((curpos += lrpad / 2 - 1) < w) {
 		drw_setscheme(drw, scheme[SchemeNorm]);
 		drw_rect(drw, x + curpos, 2, 2, bh - 4, 1, 0);
@@ -264,84 +264,6 @@ match(void)
 	calcoffsets();
 }
 
-static int
-compare_distance(const void *a, const void *b)
-{
-	struct item const *da = *(struct item **) a;
-	struct item const *db = *(struct item **) b;
-
-	if (!db)
-		return 1;
-	if (!da)
-		return -1;
-	return da->distance - db->distance;
-}
-
-static void
-fuzzymatch(void)
-{
-	struct item *item;
-	struct item **fuzzymatches = NULL;
-	char c;
-	int number_of_matches = 0, i, pidx, sidx, eidx;
-	int text_len = strlen(text), itext_len;
-
-	matches = matchend = NULL;
-
-	/* walk through all items */
-	for (item = items; item && item->text; item++) {
-		if (text_len) {
-			itext_len = strlen(item->text);
-			pidx = 0;
-			sidx = eidx = -1;
-			/* walk through item text */
-			for (i = 0; i < itext_len && (c = item->text[i]); i++) {
-				/* fuzzy match pattern */
-				if (text[pidx] == c) {
-					if (sidx == -1)
-						sidx = i;
-					pidx++;
-					if (pidx == text_len) {
-						eidx = i;
-						break;
-					}
-				}
-			}
-			/* build list of matches */
-			if (eidx != -1) {
-				/* compute distance */
-				/* factor in 30% of sidx and distance between eidx and total
-				 * text length .. let's see how it works */
-				item->distance = eidx - sidx + (itext_len - eidx + sidx) / 3;
-				appenditem(item, &matches, &matchend);
-				number_of_matches++;
-			}
-		}
-		else
-			appenditem(item, &matches, &matchend);
-	}
-
-	if (number_of_matches) {
-		/* initialize array with matches */
-		if (!(fuzzymatches = realloc(fuzzymatches, number_of_matches * sizeof(struct item*))))
-			die("cannot realloc %u bytes:", number_of_matches * sizeof(struct item *));
-		for (i = 0, item = matches; item && i < number_of_matches; i++, item = item->right)
-			fuzzymatches[i] = item;
-
-		/* sort matches according to distance */
-		qsort(fuzzymatches, number_of_matches, sizeof(struct item *), compare_distance);
-		/* rebuild list of matches */
-		matches = matchend = NULL;
-		for (i = 0, item = fuzzymatches[0]; i < number_of_matches && item && \
-				item->text; item = fuzzymatches[i], i++)
-			appenditem(item, &matches, &matchend);
-
-		free(fuzzymatches);
-	}
-	curr = sel = matches;
-	calcoffsets();
-}
-
 static void
 insert(const char *str, ssize_t n)
 {
@@ -352,7 +274,7 @@ insert(const char *str, ssize_t n)
 	if (n > 0)
 		memcpy(&text[cursor], str, n);
 	cursor += n;
-	fuzzymatch();
+	match();
 }
 
 static size_t
@@ -387,13 +309,21 @@ keypress(XKeyEvent *ev)
 {
 	char buf[32];
 	int len;
-	KeySym ksym = NoSymbol;
+	KeySym ksym;
 	Status status;
 
 	len = XmbLookupString(xic, ev, buf, sizeof buf, &ksym, &status);
-	if (status == XBufferOverflow)
+	switch (status) {
+	default: /* XLookupNone, XBufferOverflow */
 		return;
-	if (ev->state & ControlMask)
+	case XLookupChars:
+		goto insert;
+	case XLookupKeySym:
+	case XLookupBoth:
+		break;
+	}
+
+	if (ev->state & ControlMask) {
 		switch(ksym) {
 		case XK_a: ksym = XK_Home;      break;
 		case XK_b: ksym = XK_Left;      break;
@@ -413,7 +343,7 @@ keypress(XKeyEvent *ev)
 
 		case XK_k: /* delete right */
 			text[cursor] = '\0';
-			fuzzymatch();
+			match();
 			break;
 		case XK_u: /* delete left */
 			insert(NULL, 0 - cursor);
@@ -431,12 +361,10 @@ keypress(XKeyEvent *ev)
 			return;
 		case XK_Left:
 			movewordedge(-1);
-			ksym = NoSymbol;
-			break;
+			goto draw;
 		case XK_Right:
 			movewordedge(+1);
-			ksym = NoSymbol;
-			break;
+			goto draw;
 		case XK_Return:
 		case XK_KP_Enter:
 			break;
@@ -446,16 +374,14 @@ keypress(XKeyEvent *ev)
 		default:
 			return;
 		}
-	else if (ev->state & Mod1Mask)
+	} else if (ev->state & Mod1Mask) {
 		switch(ksym) {
 		case XK_b:
 			movewordedge(-1);
-			ksym = NoSymbol;
-			break;
+			goto draw;
 		case XK_f:
 			movewordedge(+1);
-			ksym = NoSymbol;
-			break;
+			goto draw;
 		case XK_g: ksym = XK_Home;  break;
 		case XK_G: ksym = XK_End;   break;
 		case XK_h: ksym = XK_Up;    break;
@@ -465,12 +391,13 @@ keypress(XKeyEvent *ev)
 		default:
 			return;
 		}
+	}
+
 	switch(ksym) {
 	default:
+insert:
 		if (!iscntrl(*buf))
 			insert(buf, len);
-		break;
-	case NoSymbol:
 		break;
 	case XK_Delete:
 		if (text[cursor] == '\0')
@@ -565,9 +492,11 @@ keypress(XKeyEvent *ev)
 		strncpy(text, sel->text, sizeof text - 1);
 		text[sizeof text - 1] = '\0';
 		cursor = strlen(text);
-		fuzzymatch();
+		match();
 		break;
 	}
+
+draw:
 	drawmenu();
 }
 
@@ -624,9 +553,14 @@ run(void)
 	XEvent ev;
 
 	while (!XNextEvent(dpy, &ev)) {
-		if (XFilterEvent(&ev, win))
+		if (XFilterEvent(&ev, None))
 			continue;
 		switch(ev.type) {
+		case DestroyNotify:
+			if (ev.xdestroywindow.window != win)
+				break;
+			cleanup();
+			exit(1);
 		case Expose:
 			if (ev.xexpose.count == 0)
 				drw_map(drw, win, 0, 0, mw, mh);
@@ -719,7 +653,7 @@ setup(void)
 	}
 	promptw = (prompt && *prompt) ? TEXTW(prompt) - lrpad / 4 : 0;
 	inputw = MIN(inputw, mw/3);
-	fuzzymatch();
+	match();
 
 	/* create menu window */
 	swa.override_redirect = True;
@@ -736,8 +670,9 @@ setup(void)
 	                XNClientWindow, win, XNFocusWindow, win, NULL);
 
 	XMapRaised(dpy, win);
+	XSetInputFocus(dpy, win, RevertToParent, CurrentTime);
 	if (embed) {
-		XSelectInput(dpy, parentwin, FocusChangeMask);
+		XSelectInput(dpy, parentwin, FocusChangeMask | SubstructureNotifyMask);
 		if (XQueryTree(dpy, parentwin, &dw, &w, &dws, &du) && dws) {
 			for (i = 0; i < du && dws[i] != win; ++i)
 				XSelectInput(dpy, dws[i], FocusChangeMask);
@@ -801,6 +736,8 @@ main(int argc, char *argv[])
 
 	if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
 		fputs("warning: no locale support\n", stderr);
+	if (!XSetLocaleModifiers(""))
+		fputs("warning: no locale modifiers support\n", stderr);
 	if (!(dpy = XOpenDisplay(NULL)))
 		die("cannot open display");
 	screen = DefaultScreen(dpy);
@@ -815,7 +752,12 @@ main(int argc, char *argv[])
 		die("no fonts could be loaded.");
 	lrpad = drw->fonts->h;
 
-	if (fast) {
+#ifdef __OpenBSD__
+	if (pledge("stdio rpath", NULL) == -1)
+		die("pledge");
+#endif
+
+	if (fast && !isatty(0)) {
 		grabkeyboard();
 		readstdin();
 	} else {

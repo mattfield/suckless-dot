@@ -51,7 +51,7 @@ noremap <Left> <NOP>
 noremap <Right> <NOP>
 
 set t_Co=256
-colorscheme sourcerer
+colorscheme monotone
 syntax on
 
 " Quit yo jibber-jabber, foo'
