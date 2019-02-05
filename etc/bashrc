@@ -60,7 +60,7 @@ man() {
 
 . ${HOME}/.sh.d/style
 
-eval `keychain --eval --nogui --quiet --agents ssh --ignore-missing --noask id_rsa elastic id_rsa.elastic found-staging.pem`
+eval `keychain --eval --nogui --quiet --agents ssh --ignore-missing --noask ~/.ssh/*`
 . ${HOME}/.keychain/$(hostname)-sh
 
 #export PS1="\[$(tput setaf 1)\]┌─╼ \[$(tput setaf 7)\][\w]\n\[$(tput setaf 1)\]\$(if [[ \$? == 0 ]]; then echo \"\[$(tput setaf 1)\]└────╼\"; else echo \"\[$(tput setaf 1)\]└╼\"; fi) \[$(tput setaf 7)\]"
