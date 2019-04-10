@@ -27,6 +27,12 @@ export XDG_MUSIC_DIR="$HOME/var/music"
 export MAIL="$HOME/var/mail/inbox"
 export XAUTHORITY="$XDG_CACHE_HOME/Xauthority"
 
+export NNN_USE_EDITOR=1
+export NNN_OPS_PROG=1
+export NNN_SCRIPT_DIR=${HOME}/usr/src/nnn/scripts
+export NNN_TMPFILE=/tmp/nnn
+export NNN_RESTRICT_NAV_OPEN=1
+
 bind 'TAB: menu-complete'
 bind 'set show-all-if-ambiguous on'
 bind 'set completion-ignore-case on'

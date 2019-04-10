@@ -5,7 +5,8 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "Gohu GohuFont:size=12:antialias=true";
+//static char *font = "Gohu GohuFont:size=11:antialias=true";
+static char *font = "xft:Dina:size=12:antialias=true";
 static int borderpx = 10;
 
 /* disable bold, italic, and roman fonts globally */

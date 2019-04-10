@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+cat ~/.nnncp | xargs -0 | xsel -bi

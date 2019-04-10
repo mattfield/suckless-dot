@@ -1,0 +1,193 @@
+# Dir navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias ~='cd ~'
+alias ll='tree --dirsfirst -ChFupDaLgh 1'
+alias l='ll'
+alias src="cd ~/src"
+alias clones="cd ~/clones"
+alias tests="cd ~/tests"
+
+# Utilities
+alias aliases="nvim ~/.aliases"
+alias b="bundle"
+alias be="bundle exec"
+alias c="cat"
+alias d="du -h -d=1"
+alias df="df -h"
+alias g="git"
+alias h="history"
+alias httpdump="sudo tcpdump -i en0 -n -s 0 -w - | grep -a -o -E \"Host\: .*|GET \/.*\""
+alias localip="ipconfig getifaddr en0"
+alias mp="nvim -p"
+alias view="nvim -p -R"
+alias vimnilla="nvim --noplugin"
+alias vp="nvim -p"
+alias tv="nvim -v"
+alias v="nvim"
+alias server='open http://localhost:8000 && python -m SimpleHTTPServer'
+alias tree='tree -C'
+alias reload=". ~/.bashrc"
+alias ssh-exit="ls ~/.ssh/sockets/* 2>/dev/null | xargs -n1 -I{} ssh -S {} -O exit localhost"
+alias t="task"
+alias tw="timew"
+alias twt='tw day'
+alias tww='tw week'
+alias genpw='echo `LC_ALL=C tr -dc "[:graph:]" < /dev/urandom | head -c32`'
+alias mkdir='mkdir -p'
+alias todo-org='e ~/org/todo.org'
+alias did="nvim +'normal Go' +'r!date' ~/did.md"
+
+alias pass-elastic='PASSWORD_STORE_DIR=~/pass-elastic pass'
+
+alias mpv='mpv --input-unix-socket=$HOME/.mpv/socket'
+
+# Emacs
+alias emacs='emacs -nw'
+
+# Git
+#alias git='hub'
+alias gst='git status -sb'
+alias ga='git add'
+alias gc='git commit -v'
+alias gp='git push'
+alias gpl='git pull'
+alias gb='git branch -a'
+alias bd='git branch -d'
+alias bD='git branch -D'
+alias co='git checkout'
+alias ds='git diff --staged --color'
+alias grb='git rebase'
+alias prune="git remote prune origin"
+alias undo='git reset --soft HEAD'
+alias gpr='hub pull-request'
+alias glg='git log --color --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit --show-signature'
+alias gls='git log --format="%C(yellow)%h %C(blue)%ad%C(red)%d %C(reset)%s%C(green) [%cn]" --decorate --show-signature'
+alias standup='git log --since "1 day ago" --oneline --author m.field@elsevier.com --show-signature'
+alias glog='git log --format="%Cgreen%h%Creset %C(cyan)%an%Creset - %s" --graph --show-signature'
+alias gd='git diff'
+alias gf='git fetch'
+alias gm='git merge --no-ff'
+alias gcl='git clone'
+alias gpum='git pull upstream master'
+
+alias assume="update-index --assume-unchanged"
+alias unassume="update-index --no-assume-unchanged"
+alias assumed="!git ls-files -v | grep ^h | cut -c 3-"
+
+# Vagrant
+alias vup='vagrant up'
+alias vssh='vagrant ssh'
+alias vst='vagrant status'
+alias vsus='vagrant suspend'
+alias bssh='boot2docker ssh'
+alias vd='vagrant destroy'
+alias vh='vagrant halt'
+alias vpup='vagrant up --provision'
+
+# Packer
+alias pb='packer build'
+
+# Docker
+alias b2d='boot2docker'
+alias bst='boot2docker start'
+alias bssh='boot2docker ssh'
+alias dc='docker-compose'
+
+# Tmux
+alias tat='tmux attach -t'
+alias tns='tmux new -s'
+alias tls='tmux ls'
+
+# Test Kitchen
+alias k='kitchen'
+alias kcr='kitchen create'
+alias kco='kitchen converge'
+alias kl='kitchen login'
+alias kd='kitchen destroy'
+alias kv='kitchen verify'
+
+alias p="python"
+
+alias fucking='sudo'
+
+alias cat='bat --style=plain,numbers'
+
+# Terraform
+alias tf='terraform'
+alias ta='terraform apply'
+alias tp='terraform plan'
+alias tg='terraform get'
+
+# Elastic
+get-production-capacity () {
+ local REGIONS=(sa-east-1 us-west-1 ap-southeast-1 ap-northeast-1 eu-west-1 ap-southeast-2 us-east-1 us-west-2)
+
+ for region in "${REGIONS[@]}"
+ do
+   echo "===== $region ====="
+   ecl --region $region allocator capacity 2> /dev/null
+ done
+}
+
+alias us-east-1-metrics-console='ecl elasticsearch console 74dffda89b14239fdfd1060fec34e5e7 --region us-east-1'
+
+alias dots='git --git-dir=$HOME/.dots/ --work-tree=$HOME'
+
+function get-gid() {
+  local NAME=$1
+  local ID=`gcloud compute instances list --filter=name:"$1" --format="table[no-heading](id)"`
+  echo "gi-$ID"
+}
+
+function colors() {
+clear
+
+WIDTH=`tput cols`
+HEIGHT=`tput lines`
+h=`expr $HEIGHT / 2`
+NUMBARS=8
+BARWIDTH=`expr $WIDTH / $NUMBARS`
+
+l="1"
+
+while [ "$l" -lt $HEIGHT ]; do
+#while [ "$l" -lt $h ]; do
+    b="0"
+    while [ "$b" -lt $NUMBARS ]; do
+        s="0"
+        while [ "$s" -lt $BARWIDTH ]; do
+            echo -en "\e[3"$b"m█"
+            s=`expr $s + 1`
+        done
+        b=`expr $b + 1`
+    done
+#        echo
+    l=`expr $l + 1`
+    echo
+done
+}
+
+sts()
+{
+    unset AWS_PROFILE
+    unset AWS_DEFAULT_PROFILE
+    local env=${1}
+    aws-mfa --profile ${env} --duration 7200
+    export AWS_PROFILE=${env}
+    export AWS_DEFAULT_PROFILE=${env}
+}
+
+mfa() {
+  unset AWS_PROFILE
+  unset AWS_DEFAULT_PROFILE
+  local account=$1
+  local token=$2
+  local cross_account_type="sre" # right now, the only options are 'sre' or 'developers'
+  local duration="43200" # 12 hours, you can set this as you feel comfortable
+  local account_id=$(jq -r ".$account" ~/.aws/accounts) # performs a lookup on the account name (`ecstaging`) with the account_id (`675738832863`)
+
+  aws-mfa --assume-role arn:aws:iam::${account_id}:role/cross_account/${cross_account_type} --short-term-suffix ${account} --duration ${duration}
+  aws sts get-caller-identity --profile default-${account}
+}
