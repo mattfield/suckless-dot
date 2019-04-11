@@ -27,8 +27,9 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            1,           -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 3,       0,           -1 },
+	{ "*chrome",  NULL,       NULL, 1 << 2,       0,           -1 },
+	{ "spotify",  NULL,       NULL, 1 << 2,       0,           -1 },
+	{ "zoom",           NULL,       NULL, 1 << 8,       1,           -1 },
 };
 
 /* layout(s) */
@@ -63,6 +64,11 @@ static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont,
 static const char *termcmd[]  = { "st", NULL };
 static const char scratchpadname[] = "scratchpad";
 static const char *scratchpadcmd[] = { "st", "-t", scratchpadname, "-g", "120x34", NULL };
+static const char *blup[] = { "light", "-A", "5", NULL };
+static const char *bldown[] = { "light", "-U", "5", NULL };
+static const char *volmute[] = { "vol", "mute", NULL };
+static const char *voldown[] = { "vol", "down", NULL };
+static const char *volup[] = { "vol", "up", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -90,6 +96,11 @@ static Key keys[] = {
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
+	{ 0,                            0x1008ff02,       spawn,   {.v = blup } },
+	{ 0,                            0x1008ff03,       spawn,   {.v = bldown } },
+	{ 0,                            0x1008ff11,       spawn,   {.v = voldown } },
+	{ 0,                            0x1008ff12,       spawn,   {.v = volmute } },
+	{ 0,                            0x1008ff13,       spawn,   {.v = volup } },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)

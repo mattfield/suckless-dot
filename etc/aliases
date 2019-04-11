@@ -10,7 +10,7 @@ alias clones="cd ~/clones"
 alias tests="cd ~/tests"
 
 # Utilities
-alias aliases="nvim ~/.aliases"
+alias aliases="nvim ${HOME}/etc/aliases"
 alias b="bundle"
 alias be="bundle exec"
 alias c="cat"
@@ -43,8 +43,9 @@ alias pass-elastic='PASSWORD_STORE_DIR=~/pass-elastic pass'
 
 alias mpv='mpv --input-unix-socket=$HOME/.mpv/socket'
 
-# Emacs
+# Apps
 alias emacs='emacs -nw'
+alias spotify='spotify --force-device-scale-factor=1.7'
 
 # Git
 #alias git='hub'

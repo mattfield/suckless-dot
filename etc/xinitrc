@@ -2,6 +2,7 @@ xrdb -load ${HOME}/etc/Xresources
 xmodmap ${HOME}/etc/Xmodmap
 xset b 0
 xset r rate 200 80
+xset m 100/3 0
 
 xsetroot -cursor_name left_ptr &
 hashwall -s 9 -r 10 -b $(xrq 'background') &

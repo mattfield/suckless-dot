@@ -33,6 +33,10 @@ export NNN_SCRIPT_DIR=${HOME}/usr/src/nnn/scripts
 export NNN_TMPFILE=/tmp/nnn
 export NNN_RESTRICT_NAV_OPEN=1
 
+export BAT_THEME="DarkNeon"
+
+export FZF_DEFAULT_COMMAND="rg --files"
+
 bind 'TAB: menu-complete'
 bind 'set show-all-if-ambiguous on'
 bind 'set completion-ignore-case on'
