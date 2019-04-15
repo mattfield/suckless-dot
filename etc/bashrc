@@ -68,7 +68,8 @@ man() {
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
-. ${HOME}/.sh.d/style
+#. ${HOME}/.sh.d/style
+#. ${HOME}/.sh.d/polyglot.sh
 
 eval `keychain --eval --nogui --quiet --agents ssh --ignore-missing --noask ~/.ssh/*`
 . ${HOME}/.keychain/$(hostname)-sh

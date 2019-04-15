@@ -5,9 +5,10 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-//static char *font = "Gohu GohuFont:size=11:antialias=true";
-static char *font = "xft:Dina:size=12:antialias=true";
-static int borderpx = 10;
+//static char *font = "Gohu GohuFont:size=11:antialias=true:autohint=true";
+//static char *font = "mono:size=12:antialias=true:autohint=true";
+static char *font = "LiberationMono:size=12:antialias=true:autohint=true";
+static int borderpx = 2;
 
 /* disable bold, italic, and roman fonts globally */
 int disablebold = 1;
@@ -184,7 +185,7 @@ static Shortcut shortcuts[] = {
 	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
 	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
 	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
-	{ MODKEY,               XK_i,           externalpipe,   {.v = openurlcmd} },
+	{ MODKEY|ShiftMask,     XK_l,           externalpipe,   {.v = openurlcmd} },
 	{ ShiftMask,            XK_Page_Up,     kscrollup,      {.i = -1} },
 	{ ShiftMask,            XK_Page_Down,   kscrolldown,    {.i = -1} },
 };

@@ -10,8 +10,8 @@ reload_dunst() {
             -bf "$(xrq '*color15')" \
             -cf "$(xrq '*color15')" \
             -nf "$(xrq '*foreground')" \
-            -fn "${DUNST_FONT:-Gohu GohuFont 8}" \
-            -geometry "${DUNST_SIZES:-230x35-22-22}" &
+            -fn "${DUNST_FONT:-Dina 11}" \
+            -geometry "${DUNST_SIZES:-230x35-0+0}" &
 }
 
 set_bar() {
