@@ -39,6 +39,8 @@ export BAT_THEME="DarkNeon"
 
 export FZF_DEFAULT_COMMAND="rg --files"
 
+export GPG_TTY=$(tty)
+
 bind 'TAB: menu-complete'
 bind 'set show-all-if-ambiguous on'
 bind 'set completion-ignore-case on'
