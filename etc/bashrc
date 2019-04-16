@@ -5,6 +5,8 @@ case $- in
       *) return;;
 esac
 
+(cat ~/.cache/wal/sequences &)
+
 . ${HOME}/etc/aliases
 . ${HOME}/z/z.sh
 . /usr/share/bash-completion/bash_completion

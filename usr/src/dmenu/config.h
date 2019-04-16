@@ -7,12 +7,7 @@ static const char *fonts[] = {
 	"Gohu GohuFont:size=10:antialias=true"
 };
 static const char *prompt      = NULL;      /* -p  option; prompt to the left of input field */
-static const char *colors[SchemeLast][2] = {
-	/*     fg         bg       */
-	[SchemeNorm] = { "#f7f7f7", "#101010" },
-	[SchemeSel] = { "#f7f7f7", "#7c7c7c" },
-	[SchemeOut] = { "#f7f7f7", "#868686" },
-};
+#include "/home/matt/.cache/wal/colors-wal-dmenu.h"
 /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
 static unsigned int lines      = 0;
 

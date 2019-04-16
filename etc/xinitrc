@@ -10,7 +10,8 @@ hashwall -s 9 -r 10 -b $(xrq 'background') &
 redshift -l 51:0 -t 5500:3000 -m randr &
 dunst &
 clipmenud &
+xss-lock slock &
 
-deco-set &
+wal -R -o deco-set &
 
 exec startwm

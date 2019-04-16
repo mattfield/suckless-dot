@@ -89,40 +89,41 @@ char *termname = "st-256color";
  */
 unsigned int tabspaces = 8;
 
-const char *colorname[] = {
+#include "/home/matt/.cache/wal/colors-wal-st.h"
+//const char *colorname[] = {
 
-  /* 8 normal colors */
-  [0] = "#101010", /* black   */
-  [1] = "#7c7c7c", /* red     */
-  [2] = "#8e8e8e", /* green   */
-  [3] = "#a0a0a0", /* yellow  */
-  [4] = "#686868", /* blue    */
-  [5] = "#747474", /* magenta */
-  [6] = "#868686", /* cyan    */
-  [7] = "#b9b9b9", /* white   */
+  //[> 8 normal colors <]
+  //[0] = "#101010", [> black   <]
+  //[1] = "#7c7c7c", [> red     <]
+  //[2] = "#8e8e8e", [> green   <]
+  //[3] = "#a0a0a0", [> yellow  <]
+  //[4] = "#686868", [> blue    <]
+  //[5] = "#747474", [> magenta <]
+  //[6] = "#868686", [> cyan    <]
+  //[7] = "#b9b9b9", [> white   <]
 
-  /* 8 bright colors */
-  [8]  = "#525252",  /* black   */
-  [9]  = "#7c7c7c",  /* red     */
-  [10] = "#8e8e8e", /* green   */
-  [11] = "#a0a0a0", /* yellow  */
-  [12] = "#686868", /* blue    */
-  [13] = "#747474", /* magenta */
-  [14] = "#868686", /* cyan    */
-  [15] = "#f7f7f7", /* white   */
+  //[> 8 bright colors <]
+  //[8]  = "#525252",  [> black   <]
+  //[9]  = "#7c7c7c",  [> red     <]
+  //[10] = "#8e8e8e", [> green   <]
+  //[11] = "#a0a0a0", [> yellow  <]
+  //[12] = "#686868", [> blue    <]
+  //[13] = "#747474", [> magenta <]
+  //[14] = "#868686", [> cyan    <]
+  //[15] = "#f7f7f7", [> white   <]
 
-  /* special colors */
-  [256] = "#101010", /* background */
-  [257] = "#b9b9b9", /* foreground */
-  [258] = "#b9b9b9",     /* cursor */
-};
+  //[> special colors <]
+  //[256] = "#101010", [> background <]
+  //[257] = "#b9b9b9", [> foreground <]
+  //[258] = "#b9b9b9",     [> cursor <]
+//};
 
 /* Default colors (colorname index)
  * foreground, background, cursor */
- unsigned int defaultbg = 0;
- unsigned int defaultfg = 257;
- unsigned int defaultcs = 258;
- unsigned int defaultrcs= 258;
+ //unsigned int defaultbg = 0;
+ //unsigned int defaultfg = 257;
+ //unsigned int defaultcs = 258;
+ //unsigned int defaultrcs= 258;
 
 /*
  * Default shape of cursor
